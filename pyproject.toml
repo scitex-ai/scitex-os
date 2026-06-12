@@ -17,7 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: System",
 ]
-dependencies = []
+dependencies = [
+    "scitex-dev>=0.17.8",
+]
 
 [project.optional-dependencies]
 dev = [
