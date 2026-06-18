@@ -50,4 +50,4 @@ export PATH="$VENV/bin:$PATH"
 export PYTHONPATH="$PWD/src"
 
 echo "py=$("$VENV"/bin/python -V) pytest=$(command -v pytest)"
-exec pytest tests/ --cov=src/scitex_os --cov-report=xml --cov-report=term
+exec pytest tests/ -n "$(nproc)" --dist loadscope --cov=src/scitex_os --cov-report=xml --cov-report=term
