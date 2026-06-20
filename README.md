@@ -31,7 +31,7 @@
 
 | # | Problem | Solution |
 |---|---------|----------|
-| 1 | **Host-specific scripts use `socket.gethostname() == 'X'`** -- different style across every repo; no consistent error message when the check fails | **`scitex_os.check_host` / `is_host` / `verify_host`** -- single canonical helper triple; `check_host` raises, `is_host` returns bool, `verify_host` warns |
+| 1 | **Host-specific scripts use `socket.gethostname() == 'X'`** -- different style across every repo; no consistent error message when the check fails | **`scitex_os.check_host` / `is_host` / `verify_host`** -- single canonical helper triple; `check_host` and `is_host` return bool, `verify_host` calls `sys.exit(1)` on mismatch |
 | 2 | **`os.rename(src, dst)` breaks across filesystems** -- "Invalid cross-device link" when the target is on a different mount | **`scitex_os.mv(src, dst)`** -- atomic when same filesystem, copy+unlink fallback otherwise; auto-creates parent dir |
 
 ## Installation
@@ -61,7 +61,7 @@ import scitex_os as sxos
 
 sxos.is_host("hostname")          # bool
 sxos.check_host("hostname")       # bool
-sxos.verify_host("hostname")      # raises if mismatch
+sxos.verify_host("hostname")      # sys.exit(1) on mismatch
 
 sxos.mv(src, tgt)                 # shutil.move with mkdir(tgt)
 ```
@@ -77,8 +77,8 @@ Standalone fork of `scitex.os`. Pure stdlib — zero deps. The umbrella package'
 
 ```
 scitex_os/
-├── _host.py              ← is_host / check_host / verify_host
-├── _move.py              ← `mv` (shutil.move + mkdir(target.parent))
+├── _check_host.py        ← is_host / check_host / verify_host
+├── _mv.py                ← `mv` (shutil.move + mkdir(target.parent))
 └── __init__.py           ← public surface (zero deps beyond stdlib)
 ```
 

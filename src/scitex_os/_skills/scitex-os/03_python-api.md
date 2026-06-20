@@ -11,37 +11,37 @@ tags: [scitex-os-python-api]
 import scitex_os
 ```
 
-## `check_host(name: str) -> None`
+## `check_host(keyword: str) -> bool`
 
-Hard host gate. Raises `RuntimeError` if `socket.gethostname()` does
-not match `name`. Use at the top of host-specific scripts.
+Returns ``True`` when *keyword* is a substring of ``socket.gethostname()``.
 
 ```python
-scitex_os.check_host("bm198")
+if scitex_os.check_host("bm198"):
+    ...
 ```
 
-## `is_host(name: str) -> bool`
+## `is_host(keyword: str) -> bool`
 
-Boolean form of `check_host`. Returns `True` when the current host
-matches `name`.
+Alias for ``check_host``.
 
 ```python
 if scitex_os.is_host("bm198"):
     ...
 ```
 
-## `verify_host(name: str) -> None`
+## `verify_host(keyword: str) -> None`
 
-Soft form. Emits a `UserWarning` instead of raising — useful for
-optional fast-paths that have a degraded fallback.
+Prints a success message when *keyword* matches the current hostname;
+otherwise prints a failure message and calls ``sys.exit(1)``. Meant for
+scripts that should hard-stop on the wrong host.
 
 ```python
-scitex_os.verify_host("bm198")  # warn-only
+scitex_os.verify_host("bm198")  # hard exit on mismatch
 ```
 
-## `mv(src, dst)`
+## `mv(src, tgt)`
 
-Path-aware safe move. Atomic `os.rename` when src and dst are on the
+Path-aware safe move. Atomic `os.rename` when src and tgt are on the
 same filesystem; falls back to `shutil.copy2` + `os.unlink` across
 devices to avoid `OSError: [Errno 18] Invalid cross-device link`.
 
@@ -49,7 +49,8 @@ devices to avoid `OSError: [Errno 18] Invalid cross-device link`.
 scitex_os.mv("/tmp/data.csv", "/mnt/results/data.csv")
 ```
 
-Accepts `str` or `pathlib.Path` for both arguments.
+Accepts `str` or `pathlib.Path` for both arguments. The parent of *tgt* is
+auto-created via ``os.makedirs``.
 
 ## See also
 

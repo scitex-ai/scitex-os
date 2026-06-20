@@ -1,0 +1,52 @@
+name: quality
+
+# Static quality audit for scitex-os — runs the full `scitex-dev ecosystem
+# audit-all` rule corpus against THIS checkout (not the runner's shared
+# state). Catches packaging/structure/PS-rule regressions (the kind that
+# broke 6 PyPI packages on 2026-04-28 via a missing scitex-config dep).
+#
+# Leaf-package form: scitex-os is not the ecosystem-registry owner
+# (scitex-app is), so this audits only scitex-os via `audit-all scitex-os
+# --path .` rather than shallow-cloning every package. A non-zero aggregate
+# exit fails the job.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 8 * * *"  # 08:00 UTC, after the 07:00 per-repo test runs
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout scitex-os
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package + audit tooling
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          # [dev] for the package's own dev deps; scitex-dev[cli-audit] for the
+          # auditor rule corpus + its spawned sub-audit subcommands.
+          .venv/bin/pip install -e ".[dev]" || .venv/bin/pip install -e .
+          .venv/bin/pip install "scitex-dev[cli-audit]"
+
+      - name: Run scitex-dev ecosystem audit-all (this checkout)
+        run: |
+          set -euo pipefail
+          # .venv/bin on PATH so audit-all's spawned `scitex-dev` subcommands resolve.
+          export PATH="$PWD/.venv/bin:$PATH"
+          # --path . audits the CHECKOUT (PR code), not the runner's shared state.
+          # --no-version-check keeps the run deterministic against the installed
+          # rule corpus regardless of PyPI release timing.
+          scitex-dev ecosystem audit-all scitex-os --path "$PWD" --no-version-check

@@ -7,19 +7,16 @@ tags: [scitex-os-quick-start]
 
 # Quick Start
 
-## Host gate
+## Host check
 
 ```python
 import scitex_os
 
-# Hard gate — raises RuntimeError if not on the named machine
-scitex_os.check_host("bm198")
+# Boolean check — returns True if keyword appears in hostname
+assert scitex_os.check_host("bm198") is True  # if on "bm198"
+assert scitex_os.is_host("bm198") is True      # alias, also bool
 
-# Soft check — boolean
-if scitex_os.is_host("bm198"):
-    ...
-
-# Warning-only — emits a UserWarning, doesn't raise
+# Hard gate — prints + sys.exit(1) on mismatch
 scitex_os.verify_host("bm198")
 ```
 
