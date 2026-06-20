@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scitex-os"
-version = "0.1.7"
+version = "0.1.8"
 description = "Host check + safe file mv — standalone module from the SciTeX ecosystem"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -17,7 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: System",
 ]
-dependencies = []
+dependencies = [
+    "scitex-dev>=0.17.8",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -65,3 +67,15 @@ ignore = ["E501"]
 
 [tool.scitex-linter]
 library_dirs = ["src", "tests", "examples", "apps", "config", "docs"]
+
+[tool.scitex_dev.audit]
+# PS-168 — Per-package secret + env-var prefix in GitHub Actions workflows.
+# `GH_PERSONAL_ACCESS_TOKEN` is the ecosystem-wide cross-cutting PAT used
+# by the contributor-assistant CLA action. The natural GITHUB_* namespace
+# is reserved by GitHub Actions on the secret-name surface (HTTP 422 on
+# every `gh secret set`), so the GH_ shorthand is the canonical
+# substitute and is registered ecosystem-wide via PR #122 on scitex-dev
+# (EXCEPTION_SECRETS_DEFAULT). This per-package entry pins the same
+# exception inline so the audit passes on every scitex-dev version,
+# independent of release timing.
+ps168_secret_exceptions = ["GH_PERSONAL_ACCESS_TOKEN"]
