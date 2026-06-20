@@ -53,10 +53,22 @@ jobs:
       - name: Upload coverage to Codecov
         if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
+        env:
+          # Self-hosted Spartan runner: every matrix job shares HOME, so the
+          # codecov-action's `git config --global --add safe.directory` races on
+          # the single ~/.gitconfig lock ("could not lock config file
+          # /home/ywatanabe/.gitconfig: File exists" → exit 255). Only the 3.12
+          # job runs codecov, so 3.12 is the lone — and flaky — red. Give the
+          # action a per-job HOME so its global git writes can never collide.
+          HOME: ${{ runner.temp }}/codecov-home-${{ github.run_id }}-${{ github.run_attempt }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           fail_ci_if_error: false
+          # Repo is owned by the runner user; the safe.directory write only
+          # exists to satisfy git's dubious-ownership check, which does not
+          # apply here. Skipping it removes the shared-gitconfig write entirely.
+          disable_safe_directory: true
 
   import-smoke:
     name: import-smoke-on-ubuntu-py3-12
