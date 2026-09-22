@@ -82,16 +82,16 @@ class TestVerifyHost:
         # Assert
         assert result is None
 
-    def test_prints_success_line_when_hostname_matches_keyword(
+    def test_logs_success_line_when_hostname_matches_keyword(
         self, swap_gethostname, capsys
     ):
         # Arrange
         swap_gethostname("ywata-note-win")
         # Act
         verify_host("ywata")
-        out = capsys.readouterr().out
+        err = capsys.readouterr().err
         # Assert
-        assert "successed" in out
+        assert "succeeded" in err
 
     def test_raises_systemexit_when_hostname_does_not_match(self, swap_gethostname):
         # Arrange
@@ -118,7 +118,7 @@ class TestVerifyHost:
         # Assert
         assert actual == 1
 
-    def test_prints_failure_line_when_hostname_does_not_match(
+    def test_logs_failure_line_when_hostname_does_not_match(
         self, swap_gethostname, capsys
     ):
         # Arrange
@@ -128,6 +128,6 @@ class TestVerifyHost:
         except SystemExit:
             pass
         # Act
-        out = capsys.readouterr().out
+        err = capsys.readouterr().err
         # Assert
-        assert "failed" in out
+        assert "failed" in err

@@ -6,7 +6,7 @@
   </a>
 </p>
 
-<p align="center"><b>Host check + safe file move helpers — zero-dep, pure stdlib.</b></p>
+<p align="center"><b>Host check + safe file move helpers — minimal deps.</b></p>
 
 <p align="center">
   <a href="https://scitex-os.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-os[all]</code>
@@ -16,12 +16,13 @@
 <p align="center">
   <a href="https://pypi.org/project/scitex-os/"><img src="https://img.shields.io/pypi/v/scitex-os?label=pypi" alt="pypi"></a>
   <a href="https://pypi.org/project/scitex-os/"><img src="https://img.shields.io/pypi/pyversions/scitex-os?label=python" alt="python"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-os/actions/workflows/rtd-sphinx-build-on-ubuntu-latest.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-os/rtd-sphinx-build-on-ubuntu-latest.yml?branch=develop&label=docs" alt="docs"></a>
+  <a href="https://github.com/scitex-ai/scitex-os/actions/workflows/rtd-sphinx-build-on-ubuntu-latest.yml"><img src="https://img.shields.io/github/actions/workflow/status/scitex-ai/scitex-os/rtd-sphinx-build-on-ubuntu-latest.yml?branch=develop&label=docs" alt="docs"></a>
+  <a href="https://scitex-os.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/scitex-os?label=docs" alt="docs-rtd"></a>
 </p>
 <p align="center">
-  <a href="https://github.com/ywatanabe1989/scitex-os/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-os/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-os/actions/workflows/install-test.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-os/install-test.yml?branch=develop&label=install-check" alt="install-check"></a>
-  <a href="https://codecov.io/gh/ywatanabe1989/scitex-os"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-os/develop?label=cov" alt="cov"></a>
+  <a href="https://github.com/scitex-ai/scitex-os/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/scitex-ai/scitex-os/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
+  <a href="https://github.com/scitex-ai/scitex-os/actions/workflows/import-smoke-on-ubuntu-py3-12.yml"><img src="https://img.shields.io/github/actions/workflow/status/scitex-ai/scitex-os/import-smoke-on-ubuntu-py3-12.yml?branch=develop&label=install-check" alt="install-check"></a>
+  <a href="https://codecov.io/gh/scitex-ai/scitex-os"><img src="https://img.shields.io/codecov/c/github/scitex-ai/scitex-os/develop?label=cov" alt="cov"></a>
 </p>
 <!-- scitex-badges:end -->
 
@@ -31,14 +32,8 @@
 
 | # | Problem | Solution |
 |---|---------|----------|
-| 1 | **Host-specific scripts use `socket.gethostname() == 'X'`** -- different style across every repo; no consistent error message when the check fails | **`scitex_os.check_host` / `is_host` / `verify_host`** -- single canonical helper triple; `check_host` and `is_host` return bool, `verify_host` calls `sys.exit(1)` on mismatch |
-| 2 | **`os.rename(src, dst)` breaks across filesystems** -- "Invalid cross-device link" when the target is on a different mount | **`scitex_os.mv(src, dst)`** -- atomic when same filesystem, copy+unlink fallback otherwise; auto-creates parent dir |
-
-## Installation
-
-```bash
-pip install scitex-os
-```
+| 1 | **Scattered host checks** — every repo hand-rolls `socket.gethostname() == 'X'` with its own style and no consistent failure message | **`scitex_os.check_host` / `is_host` / `verify_host`** -- single canonical helper triple; `check_host` and `is_host` return bool, `verify_host` calls `sys.exit(1)` on mismatch |
+| 2 | **Fragile renames** — `os.rename` fails across filesystems with "Invalid cross-device link" | **`scitex_os.mv(src, dst)`** -- atomic when same filesystem, copy+unlink fallback otherwise; auto-creates parent dir |
 
 ## Quick Start
 
@@ -48,6 +43,65 @@ import scitex_os as sxos
 if sxos.is_host("compute-01"):
     sxos.mv(src, tgt)
 ```
+
+## Demo
+
+```mermaid
+flowchart LR
+    A[script.py] -->|is_host| B{hostname<br/>matches?}
+    B -- yes --> C[sxos.mv src → tgt<br/>auto mkdir parent]
+    B -- no --> D[skip / raise]
+```
+
+<p align="center"><sub><b>Figure 1.</b> Demo path. Host match gates the move; mismatch skips or raises before anything runs.</sub></p>
+
+```python
+import scitex_os as sxos
+
+if sxos.is_host("compute-01"):
+    sxos.mv("results/run.csv", "/shared/runs/2026-05-07/run.csv")
+# parent dir is auto-created; cross-filesystem moves are handled.
+```
+
+```bash
+$ python -c "import scitex_os; print(scitex_os.is_host('laptop'))"
+True
+```
+
+## Installation
+
+```bash
+uv pip install "scitex-os[all]"
+```
+
+<details>
+<summary><b>Per-module extras</b></summary>
+
+<br>
+
+| Extra | Pulls in |
+|---|---|
+| `all` | `dev` + `docs` (recommended) |
+| `dev` | pytest, pytest-cov, ruff |
+| `docs` | Sphinx + RTD theme + myst-parser (docs build only) |
+
+```bash
+uv pip install -e ".[dev]"               # editable install for contributors
+```
+
+</details>
+## Architecture
+
+```mermaid
+flowchart LR
+    H[keyword] --> C[check_host / is_host]
+    C --> B{hostname<br/>matches?}
+    B -- yes --> M[mv src to tgt]
+    B -- no --> X[verify_host exits 1]
+    M --> OK[moved + parent auto-created]
+```
+
+<p align="center"><sub><b>Figure 2.</b> Helper flow. Host gating decides whether the move runs; moves auto-create parents and survive cross-filesystem targets.</sub></p>
 
 ## 1 Interfaces
 
@@ -70,39 +124,9 @@ sxos.mv(src, tgt)                 # shutil.move with mkdir(tgt)
 
 ## Status
 
-Standalone fork of `scitex.os`. Pure stdlib — zero deps. The umbrella package's
+Standalone fork of `scitex.os`. Minimal deps (scitex-logging for output).
+The umbrella package's
 `scitex.os` import path is preserved via a `sys.modules`-alias bridge.
-
-## Architecture
-
-```
-scitex_os/
-├── _check_host.py        ← is_host / check_host / verify_host
-├── _mv.py                ← `mv` (shutil.move + mkdir(target.parent))
-└── __init__.py           ← public surface (zero deps beyond stdlib)
-```
-
-## Demo
-
-```mermaid
-flowchart LR
-    A[script.py] -->|is_host| B{hostname<br/>matches?}
-    B -- yes --> C[sxos.mv src → tgt<br/>auto mkdir parent]
-    B -- no --> D[skip / raise]
-```
-
-```python
-import scitex_os as sxos
-
-if sxos.is_host("compute-01"):
-    sxos.mv("results/run.csv", "/shared/runs/2026-05-07/run.csv")
-# parent dir is auto-created; cross-filesystem moves are handled.
-```
-
-```bash
-$ python -c "import scitex_os; print(scitex_os.is_host('laptop'))"
-True
-```
 
 ## Part of SciTeX
 

@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # Time-stamp: "2024-04-06 09:00:45 (ywatanabe)"
 
+import scitex_logging as slogging
+
+log = slogging.getLogger(__name__)
+
 # import os
 # import shutil
 
@@ -44,9 +48,9 @@ def mv(src, tgt):
 
     try:
         shutil.move(src, tgt)
-        print(f"\nMoved from {src} to {tgt}")
+        log.info(f"\nMoved from {src} to {tgt}")
     except OSError as e:
-        print(f"\nError: {e}")
+        log.error(f"\nError: {e}")
         successful = False
 
     return successful

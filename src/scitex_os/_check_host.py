@@ -5,6 +5,10 @@
 import socket
 import sys
 
+import scitex_logging as slogging
+
+log = slogging.getLogger(__name__)
+
 
 def check_host(keyword):
     """Check if the current hostname contains the given keyword."""
@@ -16,10 +20,10 @@ is_host = check_host
 
 def verify_host(keyword):
     if is_host(keyword):
-        print(f"Host verification successed for keyword: {keyword}")
+        log.info(f"Host verification succeeded for keyword: {keyword}")
         return
     else:
-        print(f"Host verification failed for keyword: {keyword}")
+        log.error(f"Host verification failed for keyword: {keyword}")
         sys.exit(1)
 
 
