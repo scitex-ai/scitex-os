@@ -7,6 +7,13 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-02
+
+- Route host verification and file-move diagnostics through scitex-logging without changing return values.
+- Repair release SIF execution with verified images and job-owned temporary paths.
+- Run the full native test suite with complete declared test dependencies.
+
+
 ## [0.1.8] - 2026-06-20
 
 - Back-merge `main` into `develop` (release-meta + audit-compliance): adopt

@@ -1,10 +1,11 @@
-name: import-smoke
+name: quality
 # PILOT: org-level reusable-workflow caller (scitex-ai/.github, 2026-07-10).
-# Replaces the formerly-inlined import-smoke job with a thin `uses:` call
-# into the scitex-ai/.github reusable workflow — same job body, now
+# Replaces the formerly-inlined quality-audit job with a thin `uses:` call
+# into the scitex-ai/.github reusable workflow — same job body (derives the
+# package name from this repo's own pyproject.toml automatically), now
 # centrally maintained. Triggers preserved verbatim from the prior file.
 #
-# New required-status-check context: "import-smoke / import-smoke-on-ubuntu-py3-12"
+# New required-status-check context: "quality-audit / audit"
 # — may not match the OLD required-status-check contexts on develop/main
 # branch protection; branch protection updated as part of this PR where
 # needed.
@@ -15,10 +16,10 @@ on:
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: "0 7 * * *"  # nightly 07:00 UTC
+    - cron: "0 8 * * *"  # 08:00 UTC, after the 07:00 per-repo test runs
   workflow_dispatch:
 
 jobs:
-  import-smoke:
-    uses: scitex-ai/.github/.github/workflows/import-smoke.yml@main
+  quality-audit:
+    uses: scitex-ai/.github/.github/workflows/quality-audit.yml@main
     secrets: inherit
