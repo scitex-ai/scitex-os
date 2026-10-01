@@ -13,6 +13,15 @@ from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+# scitex-logging defaults to WARN, which would silence the log.info
+# output the tests assert on — keep INFO visible under pytest.
+os.environ.setdefault("SCITEX_LOGGING_LEVEL", "INFO")
+try:
+    import scitex_logging as _slogging
+    _slogging.set_level("INFO")
+except Exception:
+    pass
+
 os.environ["COVERAGE_PROCESS_START"] = str(_PROJECT_ROOT / "pyproject.toml")
 os.environ["COVERAGE_FILE"] = str(_PROJECT_ROOT / ".coverage")
 
